@@ -1,0 +1,37 @@
+name: Optical HTML
+on:
+  push:
+    branches: [release/optical-html]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build:optical-html
+      - name: Verify embedded payload
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          const html=fs.readFileSync('dist-standalone/optical-transfer.html','utf8');
+          const data=JSON.parse(html.match(/<script id="payload" type="application\/json">([^<]+)<\/script>/)[1]);
+          for(const [mode,file] of [['send','decimen-sender.html'],['receive','decimen-receiver.html']]){
+            assert.deepEqual(Buffer.from(data[mode],'base64'),fs.readFileSync('dist-standalone/'+file));
+          }
+          console.log('PASS: both standalone engines embedded without byte changes');
+          NODE
+          (cd dist-standalone && sha256sum *.html > SHA256SUMS.txt)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: optical-transfer-html
+          path: dist-standalone/
+          if-no-files-found: error
