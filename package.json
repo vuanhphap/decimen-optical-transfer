@@ -21,7 +21,8 @@
     "icons": "node --import tsx build/make-icons.ts",
     "benchmark:promote": "node --import tsx build/benchmarks.ts promote",
     "benchmark:readme": "node --import tsx build/benchmarks.ts readme",
-    "test": "node --import tsx --test tests/*.test.ts"
+    "test": "node --import tsx --test tests/*.test.ts",
+    "build:optical-html": "npm run build:standalone && node build/optical-html.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.1.2",
